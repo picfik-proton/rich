@@ -1,0 +1,1946 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>人生财务操作系统</title>
+  <style>
+    :root {
+      --bg: #0b1220;
+      --bg-strong: #111827;
+      --bg-soft: #101c2f;
+      --card: #162334;
+      --card-soft: #1d2b3a;
+      --primary: #5cc8ff;
+      --primary-soft: rgba(92, 200, 255, 0.18);
+      --primary-strong: rgba(92, 200, 255, 0.28);
+      --success: #4ade80;
+      --warning: #fbbf24;
+      --danger: #f87171;
+      --text: #ebf3ff;
+      --muted: #9bb0c9;
+      --line: rgba(148, 163, 184, 0.22);
+      --shadow: 0 14px 30px rgba(2, 6, 23, 0.4);
+      --radius: 18px;
+      --nav-height: 74px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      min-height: 100%;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 0 0 calc(var(--nav-height) + 18px);
+      background:
+        radial-gradient(circle at top, rgba(92, 200, 255, 0.12), transparent 32%),
+        linear-gradient(180deg, var(--bg) 0%, #090f1b 100%);
+    }
+
+    .app-shell {
+      width: min(100%, 480px);
+      min-height: 100vh;
+      background: linear-gradient(180deg, rgba(11, 18, 32, 0.96), rgba(8, 12, 22, 0.98));
+      position: relative;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(12px);
+      background: rgba(15, 23, 42, 0.88);
+      border-bottom: 1px solid var(--line);
+      padding: 12px 16px 10px;
+    }
+
+    .topbar-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      color: var(--primary);
+      text-transform: uppercase;
+      opacity: 0.9;
+      margin-bottom: 4px;
+    }
+
+    .page-title {
+      margin: 0;
+      font-size: 1.1rem;
+      line-height: 1.3;
+      letter-spacing: 0.02em;
+    }
+
+    .header-chip {
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      color: var(--primary);
+      font-size: 11px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    main {
+      padding: 14px 14px 24px;
+    }
+
+    .card {
+      background: linear-gradient(180deg, rgba(22, 35, 52, 0.98), rgba(14, 24, 39, 0.98));
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 14px;
+      margin-bottom: 14px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto auto 0;
+      width: 100%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(92, 200, 255, 0.45), transparent);
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 0 0 10px;
+      font-size: 0.96rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .section-title small {
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: 0.04em;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .metric-card {
+      background: linear-gradient(180deg, rgba(31, 46, 64, 1), rgba(19, 31, 46, 1));
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      border-radius: 16px;
+      padding: 12px 12px 10px;
+      min-height: 104px;
+      transition: transform 0.18s ease, border-color 0.18s ease;
+    }
+
+    .metric-card:active {
+      transform: scale(0.99);
+    }
+
+    .metric-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 11px;
+      margin-bottom: 8px;
+    }
+
+    .metric-value {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text);
+      margin: 0 0 4px;
+      letter-spacing: 0.02em;
+    }
+
+    .metric-sub {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .trend-up { color: var(--success); }
+    .trend-down { color: var(--danger); }
+    .trend-neutral { color: var(--warning); }
+
+    .split-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 14px;
+    }
+
+    .chart-card svg {
+      display: block;
+      width: 100%;
+      height: 220px;
+      border-radius: 12px;
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0.2), rgba(15, 23, 42, 0.05));
+    }
+
+    .actions-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .action-item {
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0.28), rgba(15, 23, 42, 0.18));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
+    }
+
+    .action-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .action-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 52px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .level-优先 { background: rgba(248, 113, 113, 0.15); color: #fca5a5; }
+    .level-建议 { background: rgba(251, 191, 36, 0.15); color: #fcd34d; }
+    .level-进阶 { background: rgba(56, 189, 248, 0.15); color: #7dd3fc; }
+
+    .action-item strong {
+      display: block;
+      font-size: 0.82rem;
+      margin-bottom: 4px;
+    }
+
+    .action-item p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .stack-card {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .fi-box {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .fi-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .fi-item {
+      padding: 10px;
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.25);
+      border: 1px solid var(--line);
+    }
+
+    .fi-item-label {
+      color: var(--muted);
+      font-size: 10px;
+      margin-bottom: 6px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .fi-item-value {
+      font-weight: 700;
+      font-size: 0.92rem;
+      line-height: 1.3;
+    }
+
+    .progress-wrap {
+      margin-top: 4px;
+    }
+
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .progress-bar {
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.2);
+      overflow: hidden;
+      border: 1px solid rgba(148, 163, 184, 0.12);
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 999px;
+      width: 0;
+      background: linear-gradient(90deg, var(--primary), var(--success));
+      transition: width 0.3s ease;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    button, .action-btn, .upload-btn {
+      appearance: none;
+      border: none;
+      background: linear-gradient(180deg, rgba(92, 200, 255, 0.16), rgba(92, 200, 255, 0.08));
+      color: var(--text);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s ease, filter 0.15s ease, opacity 0.15s ease, box-shadow 0.15s ease;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 8px 16px rgba(15, 23, 42, 0.2);
+    }
+
+    button:hover, .action-btn:hover, .upload-btn:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.04);
+    }
+
+    button:active, .action-btn:active, .upload-btn:active {
+      transform: translateY(0);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+    }
+
+    .button-primary {
+      background: linear-gradient(180deg, rgba(92, 200, 255, 0.22), rgba(92, 200, 255, 0.12));
+      border: 1px solid rgba(92, 200, 255, 0.32);
+    }
+
+    .button-success {
+      background: linear-gradient(180deg, rgba(74, 222, 128, 0.2), rgba(74, 222, 128, 0.1));
+      border: 1px solid rgba(74, 222, 128, 0.25);
+    }
+
+    .button-warning {
+      background: linear-gradient(180deg, rgba(251, 191, 36, 0.2), rgba(251, 191, 36, 0.08));
+      border: 1px solid rgba(251, 191, 36, 0.2);
+    }
+
+    .button-danger {
+      background: linear-gradient(180deg, rgba(248, 113, 113, 0.18), rgba(248, 113, 113, 0.08));
+      border: 1px solid rgba(248, 113, 113, 0.2);
+      color: #fecaca;
+    }
+
+    .segmented {
+      display: flex;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 4px;
+      gap: 4px;
+      margin-bottom: 12px;
+    }
+
+    .segmented button {
+      flex: 1;
+      font-size: 12px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: transparent;
+      color: var(--muted);
+      border: none;
+      font-weight: 700;
+    }
+
+    .segmented button.active {
+      background: rgba(56, 189, 248, 0.18);
+      color: var(--text);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+    }
+
+    .field-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .field label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+    }
+
+    .field input, .field select, .field textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: rgba(15, 23, 42, 0.35);
+      border-radius: 12px;
+      color: var(--text);
+      padding: 11px 12px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .field input:focus, .field select:focus, .field textarea:focus {
+      border-color: rgba(56, 189, 248, 0.8);
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.18);
+    }
+
+    .field textarea {
+      resize: vertical;
+      min-height: 86px;
+    }
+
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .checkbox-row input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+
+    .list-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .list-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.25);
+      border: 1px solid var(--line);
+    }
+
+    .list-item-main {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .list-item-main strong {
+      font-size: 0.92rem;
+      line-height: 1.3;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .list-item-main small {
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
+    .list-item-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .amount-badge {
+      min-width: 72px;
+      text-align: right;
+      font-weight: 700;
+      font-size: 0.88rem;
+      color: var(--text);
+    }
+
+    .tiny-button {
+      border: none;
+      border-radius: 10px;
+      background: rgba(248, 113, 113, 0.12);
+      color: #fecaca;
+      padding: 7px 8px;
+      font-size: 11px;
+      cursor: pointer;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+
+    .capital-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .capital-item {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 10px 10px 12px;
+      background: rgba(15, 23, 42, 0.18);
+    }
+
+    .capital-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    .capital-meta span:last-child {
+      color: var(--text);
+      font-weight: 700;
+      font-size: 0.8rem;
+    }
+
+    input[type="range"] {
+      accent-color: var(--primary);
+      width: 100%;
+      height: 28px;
+      cursor: pointer;
+      margin: 0 0 8px;
+    }
+
+    .capital-note {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: rgba(15, 23, 42, 0.25);
+      border-radius: 10px;
+      color: var(--text);
+      padding: 8px 10px;
+      font-size: 12px;
+      resize: vertical;
+      min-height: 64px;
+    }
+
+    .review-block {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 6px;
+    }
+
+    .review-item {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 10px;
+      background: rgba(15, 23, 42, 0.18);
+    }
+
+    .review-item .field {
+      margin-bottom: 8px;
+    }
+
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .history-card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px 12px 10px;
+      background: rgba(15, 23, 42, 0.2);
+    }
+
+    .history-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .history-head strong {
+      font-size: 0.82rem;
+    }
+
+    .history-head span {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .history-answer {
+      display: grid;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .history-answer-row {
+      background: rgba(148, 163, 184, 0.06);
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      border-radius: 10px;
+      padding: 8px 9px;
+    }
+
+    .history-answer-row label {
+      display: block;
+      color: var(--muted);
+      font-size: 10px;
+      margin-bottom: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .history-answer-row p {
+      margin: 0;
+      color: var(--text);
+      line-height: 1.5;
+      font-size: 12px;
+    }
+
+    .empty-state {
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+      padding: 12px 8px;
+      border: 1px dashed rgba(148, 163, 184, 0.25);
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.15);
+    }
+
+    .settings-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .upload-btn {
+      position: relative;
+      overflow: hidden;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .upload-btn input {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .help-list {
+      padding-left: 18px;
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 12px;
+    }
+
+    .bottom-nav {
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 12px;
+      width: min(calc(100% - 12px), 468px);
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 6px;
+      background: rgba(15, 23, 42, 0.92);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      border-radius: 18px;
+      padding: 8px 6px;
+      box-shadow: 0 18px 36px rgba(15, 23, 42, 0.42);
+      z-index: 20;
+      overflow: hidden;
+    }
+
+    .nav-button {
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 12px;
+      color: var(--muted);
+      padding: 8px 4px 7px;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1.2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      min-height: 54px;
+      cursor: pointer;
+      box-shadow: none;
+    }
+
+    .nav-button.active {
+      background: linear-gradient(180deg, rgba(92, 200, 255, 0.18), rgba(92, 200, 255, 0.08));
+      color: var(--text);
+      border-color: rgba(92, 200, 255, 0.22);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+
+    .nav-icon {
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    @media (max-width: 360px) {
+      .split-grid { grid-template-columns: 1fr; }
+      .field-grid { grid-template-columns: 1fr; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .page-title { font-size: 1rem; }
+      .nav-button { font-size: 10px; }
+      .header-chip { max-width: 120px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div>
+          <div class="eyebrow">Life OS</div>
+          <h1 class="page-title" id="page-title">首页</h1>
+        </div>
+        <div class="header-chip" id="header-subtitle">现金流与自由度</div>
+      </div>
+    </header>
+
+    <main id="app-page"></main>
+
+    <nav class="bottom-nav" aria-label="底部导航">
+      <button class="nav-button active" data-tab="home" type="button">
+        <span class="nav-icon">🏠</span>
+        <span>首页</span>
+      </button>
+      <button class="nav-button" data-tab="finance" type="button">
+        <span class="nav-icon">💰</span>
+        <span>财务</span>
+      </button>
+      <button class="nav-button" data-tab="capital" type="button">
+        <span class="nav-icon">🧠</span>
+        <span>资本</span>
+      </button>
+      <button class="nav-button" data-tab="review" type="button">
+        <span class="nav-icon">📊</span>
+        <span>复盘</span>
+      </button>
+      <button class="nav-button" data-tab="settings" type="button">
+        <span class="nav-icon">⚙️</span>
+        <span>设置</span>
+      </button>
+    </nav>
+  </div>
+
+  <script>
+    (() => {
+      const STORAGE_KEY = "life_os_v1";
+      const REMOTE_SYNC = {
+        enabled: false,
+        apiBase: "https://your-function-url.example.com",
+        statePath: "life-finance/state.json",
+        getSignedUrlEndpoint: "/api/oss-put-url",
+        getStateEndpoint: "/api/oss-state"
+      };
+      const CAPITAL_KEYS = [
+        { key: "financial", label: "财务" },
+        { key: "time", label: "时间" },
+        { key: "health", label: "健康" },
+        { key: "relationship", label: "关系" },
+        { key: "knowledge", label: "知识" },
+        { key: "meaning", label: "意义" }
+      ];
+
+      const DEFAULT_STATE = {
+        updatedAt: Date.now(),
+        finance: {
+          incomes: [
+            { id: "inc_1", name: "主业工资", type: "主动", amount: 12000 },
+            { id: "inc_2", name: "指数基金分红", type: "被动", amount: 2500 }
+          ],
+          expenses: [
+            { id: "exp_1", name: "房租", type: "固定", amount: 4200 },
+            { id: "exp_2", name: "餐饮与交通", type: "浮动", amount: 2600 },
+            { id: "exp_3", name: "娱乐与消费", type: "浮动", amount: 1800 }
+          ],
+          assets: [
+            { id: "ast_1", name: "现金储备", value: 42000, cashflow: 300, emergency: true },
+            { id: "ast_2", name: "指数基金", value: 180000, cashflow: 1600, emergency: false },
+            { id: "ast_3", name: "房产净值", value: 520000, cashflow: 2000, emergency: false }
+          ],
+          liabilities: [
+            { id: "lia_1", name: "房贷", balance: 180000, monthlyPayment: 6500, rate: 4.6 },
+            { id: "lia_2", name: "信用卡", balance: 26000, monthlyPayment: 1500, rate: 12.8 }
+          ]
+        },
+        capital: {
+          values: {
+            financial: 74,
+            time: 58,
+            health: 62,
+            relationship: 76,
+            knowledge: 70,
+            meaning: 68
+          },
+          notes: {
+            financial: "持续提升现金流保护层，避免高风险杠杆。",
+            time: "留白时间还不够，需主动安排自由时段。",
+            health: "睡眠和运动需要更稳定的节奏。",
+            relationship: "人与人之间的连接正在稳步增强。",
+            knowledge: "阅读和深度学习带来更高复利。",
+            meaning: "意义感增长，但仍需更明确的长期方向。"
+          }
+        },
+        reviews: {
+          monthly: [],
+          quarterly: [],
+          annual: []
+        },
+        reviewTemplates: {
+          monthly: [
+            "本月财务自由度变化？",
+            "储蓄率情况？",
+            "最大三笔支出？",
+            "哪项资本进步/退步？",
+            "下月最重要的一件事？"
+          ],
+          quarterly: [
+            "净资产增长？",
+            "资产结构变化？",
+            "六种资本平衡？",
+            "负债处理？",
+            "下季三个关键目标？"
+          ],
+          annual: [
+            "最大成就与教训？",
+            "FI 比率变化？",
+            "六种资本变化？",
+            "意义之事？",
+            "明年三个关键词？"
+          ]
+        },
+        settings: {
+          monthlyInvestmentGoal: 3500
+        }
+      };
+
+      const app = {
+        currentTab: "home",
+        financeTab: "incomes",
+        reviewTab: "monthly"
+      };
+
+      let state = loadState();
+
+      function uid(prefix = "id") {
+        return prefix + "_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+      }
+
+      function escapeHtml(value) {
+        return String(value ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/\"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      function deepClone(obj) {
+        return JSON.parse(JSON.stringify(obj));
+      }
+
+      function mergeDeep(target, source) {
+        const result = deepClone(target);
+        function walk(t, s) {
+          if (Array.isArray(s)) {
+            return deepClone(s);
+          }
+          if (s && typeof s === "object") {
+            for (const key in s) {
+              if (Object.prototype.hasOwnProperty.call(s, key)) {
+                if (t[key] && typeof t[key] === "object" && !Array.isArray(t[key]) && typeof s[key] === "object" && !Array.isArray(s[key])) {
+                  t[key] = walk(t[key], s[key]);
+                } else {
+                  t[key] = deepClone(s[key]);
+                }
+              }
+            }
+            return t;
+          }
+          return deepClone(s);
+        }
+        return walk(result, source);
+      }
+
+      function loadState() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) return deepClone(DEFAULT_STATE);
+          const parsed = JSON.parse(raw);
+          return mergeDeep(DEFAULT_STATE, parsed);
+        } catch (error) {
+          return deepClone(DEFAULT_STATE);
+        }
+      }
+
+      function saveStateToLocal(nextState) {
+        const normalized = mergeDeep(DEFAULT_STATE, nextState || {});
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
+      }
+
+      async function requestSignedUploadUrl() {
+        if (!REMOTE_SYNC.enabled) return null;
+
+        const res = await fetch(`${REMOTE_SYNC.apiBase}${REMOTE_SYNC.getSignedUrlEndpoint}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ key: REMOTE_SYNC.statePath, ttlSeconds: 300 })
+        });
+
+        if (!res.ok) {
+          throw new Error("获取 OSS 签名失败");
+        }
+
+        const payload = await res.json();
+        if (!payload || !payload.success) {
+          throw new Error(payload?.message || "获取上传地址失败");
+        }
+
+        return payload.data;
+      }
+
+      async function syncStateToOss(nextState) {
+        if (!REMOTE_SYNC.enabled) return;
+
+        const signed = await requestSignedUploadUrl();
+        if (!signed || !signed.url) {
+          throw new Error("没有返回有效的上传地址");
+        }
+
+        const res = await fetch(signed.url, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json; charset=utf-8" },
+          body: JSON.stringify(nextState, null, 2)
+        });
+
+        if (!res.ok) {
+          throw new Error("上传到 OSS 失败");
+        }
+      }
+
+      function persist() {
+        state.updatedAt = Date.now();
+        saveStateToLocal(state);
+
+        if (!REMOTE_SYNC.enabled) return;
+
+        if (window.__lifeOssSaveTimer) {
+          clearTimeout(window.__lifeOssSaveTimer);
+        }
+
+        const snapshot = deepClone(state);
+        window.__lifeOssSaveTimer = setTimeout(async () => {
+          try {
+            await syncStateToOss(snapshot);
+            console.log("已同步到 OSS");
+          } catch (error) {
+            console.warn("云端同步失败，已保存在本地", error);
+          }
+        }, 500);
+      }
+
+      async function fetchLatestStateFromOss() {
+        if (!REMOTE_SYNC.enabled) return;
+
+        try {
+          const res = await fetch(`${REMOTE_SYNC.apiBase}${REMOTE_SYNC.getStateEndpoint}`, {
+            method: "GET",
+            cache: "no-store",
+            headers: { "Content-Type": "application/json" }
+          });
+
+          if (!res.ok) return;
+
+          const payload = await res.json();
+          if (!payload || !payload.success || !payload.data || typeof payload.data !== "object") return;
+
+          const remoteState = payload.data;
+          const localState = loadState();
+          const localTime = Number(localState.updatedAt || 0);
+          const remoteTime = Number(remoteState.updatedAt || 0);
+
+          if (remoteTime > localTime) {
+            state = mergeDeep(DEFAULT_STATE, remoteState);
+            saveStateToLocal(state);
+          }
+        } catch (error) {
+          console.warn("读取远程 OSS 数据失败，继续使用本地数据", error);
+        }
+      }
+
+      function formatMoney(value) {
+        const num = Number(value) || 0;
+        return new Intl.NumberFormat("zh-CN", {
+          style: "currency",
+          currency: "CNY",
+          maximumFractionDigits: 0
+        }).format(num);
+      }
+
+      function formatPercent(value) {
+        return `${Math.round(Number(value) || 0)}%`;
+      }
+
+      function clamp(value, min, max) {
+        return Math.min(max, Math.max(min, value));
+      }
+
+      function getFinancialMetrics() {
+        const incomes = state.finance.incomes || [];
+        const expenses = state.finance.expenses || [];
+        const assets = state.finance.assets || [];
+        const liabilities = state.finance.liabilities || [];
+
+        const totalIncome = incomes.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+        const passiveIncomeFromIncomes = incomes.reduce((sum, item) => {
+          return item.type === "被动" ? sum + (Number(item.amount) || 0) : sum;
+        }, 0);
+        const passiveIncomeFromAssets = assets.reduce((sum, item) => sum + (Number(item.cashflow) || 0), 0);
+        const passiveIncome = passiveIncomeFromIncomes + passiveIncomeFromAssets;
+
+        const totalExpense = expenses.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+        const totalLiabilityPayment = liabilities.reduce((sum, item) => sum + (Number(item.monthlyPayment) || 0), 0);
+        const monthlyCost = totalExpense + totalLiabilityPayment;
+
+        const monthlyCashFlow = totalIncome - monthlyCost;
+        const totalAssetsValue = assets.reduce((sum, item) => sum + (Number(item.value) || 0), 0);
+        const emergencyFund = assets.reduce((sum, item) => {
+          return item.emergency ? sum + (Number(item.value) || 0) : sum;
+        }, 0);
+        const totalLiabilityBalance = liabilities.reduce((sum, item) => sum + (Number(item.balance) || 0), 0);
+
+        const netWorth = totalAssetsValue - totalLiabilityBalance;
+        const annualExpense = monthlyCost * 12;
+        const fiTarget = annualExpense / 0.04;
+        const freedomRate = monthlyCost > 0 ? (passiveIncome / monthlyCost) * 100 : 0;
+        const savingsRate = totalIncome > 0 ? (Math.max(monthlyCashFlow, 0) / totalIncome) * 100 : 0;
+        const emergencyFundMonths = monthlyCost > 0 ? emergencyFund / monthlyCost : 0;
+
+        let fiProgress = fiTarget > 0 ? (netWorth / fiTarget) * 100 : 0;
+        fiProgress = clamp(fiProgress, 0, 100);
+
+        const distanceToFi = Math.max(fiTarget - netWorth, 0);
+        const debtRatio = totalIncome > 0 ? (totalLiabilityPayment / totalIncome) * 100 : 0;
+
+        return {
+          totalIncome,
+          passiveIncome,
+          totalExpense,
+          totalLiabilityPayment,
+          monthlyCost,
+          monthlyCashFlow,
+          totalAssetsValue,
+          emergencyFund,
+          netWorth,
+          annualExpense,
+          fiTarget,
+          freedomRate,
+          savingsRate,
+          emergencyFundMonths,
+          fiProgress,
+          distanceToFi,
+          debtRatio
+        };
+      }
+
+      function getTriggeredRules() {
+        const metrics = getFinancialMetrics();
+        const capital = state.capital.values || {};
+        const totalIncome = metrics.totalIncome || 0;
+        const totalDebtPayment = metrics.totalLiabilityPayment || 0;
+        const debtToIncome = totalIncome > 0 ? (totalDebtPayment / totalIncome) * 100 : 0;
+
+        const rules = [
+          {
+            name: "月现金流为负",
+            level: "优先",
+            triggered: metrics.monthlyCashFlow < 0,
+            message: "本月现金流为负，说明支出和负债扣款高于收入。",
+            action: "优先削减非必要支出，并暂停新的消费型负债。"
+          },
+          {
+            name: "高息负债",
+            level: "优先",
+            triggered: (state.finance.liabilities || []).some(item => Number(item.rate || 0) >= 10),
+            message: "存在高息负债，利率 >= 10% 正在吞噬现金流。",
+            action: "优先加速还款，集中攻击信用卡和高息贷款。"
+          },
+          {
+            name: "应急基金不足",
+            level: "优先",
+            triggered: metrics.emergencyFundMonths < 3,
+            message: "应急基金不足 3 个月，风险偏高。",
+            action: "暂停高风险投资，先把现金储备到 3-6 个月支出。"
+          },
+          {
+            name: "健康资本偏低",
+            level: "优先",
+            triggered: Number(capital.health || 0) < 40,
+            message: "健康资本偏低，睡眠和运动是增值资产。",
+            action: "优先规划每周运动与睡眠，降低长期消耗。"
+          },
+          {
+            name: "储蓄率偏低",
+            level: "建议",
+            triggered: metrics.savingsRate < 20,
+            message: "储蓄率低于 20%，节流比扩张更重要。",
+            action: "优化固定支出，优先保留一部分现金流作为投资种子。"
+          },
+          {
+            name: "无被动收入",
+            level: "建议",
+            triggered: metrics.passiveIncome <= 0,
+            message: "当前没有被动收入，资产需要开始产出现金。",
+            action: "从指数基金、股息型资产或租赁资产开始启动被动收入。"
+          },
+          {
+            name: "负债收入比过高",
+            level: "建议",
+            triggered: debtToIncome > 35,
+            message: "负债还款占收入比例偏高，新增负债风险大。",
+            action: "避免新的消费性贷款，先修复现金流基础。"
+          },
+          {
+            name: "时间资本不足",
+            level: "建议",
+            triggered: Number(capital.time || 0) < 30,
+            message: "时间资本不足，会让你长期被事务拖住。",
+            action: "每周安排至少 3 个自由时段，保护深度工作。"
+          },
+          {
+            name: "现金流正且应急充足",
+            level: "建议",
+            triggered: metrics.monthlyCashFlow > 0 && metrics.emergencyFundMonths >= 3,
+            message: "你已经具备投资能力。",
+            action: "将 50% 的月现金流继续投入长期资产，保持复利节奏。"
+          },
+          {
+            name: "财务自由度达到 50%",
+            level: "进阶",
+            triggered: metrics.freedomRate >= 50 && metrics.freedomRate < 100,
+            message: "财务自由度已经过半，适合加速资产升级。",
+            action: "保持节奏，规划快车道，并着手更高效率的资产组合。"
+          },
+          {
+            name: "财务自由度达到 100%",
+            level: "进阶",
+            triggered: metrics.freedomRate >= 100,
+            message: "你已达到 100% 的财务自由度。",
+            action: "追求意义资本和更高维度的价值创造。"
+          },
+          {
+            name: "知识资本不足",
+            level: "建议",
+            triggered: Number(capital.knowledge || 0) < 50,
+            message: "知识资本偏弱，建议增加系统学习。",
+            action: "每周安排 2 次 60 分钟学习，复利知识和技能。"
+          }
+        ];
+
+        const activeRules = rules.filter(rule => rule.triggered);
+
+        return activeRules.sort((a, b) => {
+          const order = { 优先: 3, 建议: 2, 进阶: 1 };
+          return (order[b.level] || 0) - (order[a.level] || 0);
+        });
+      }
+
+      function renderHomePage() {
+        const metrics = getFinancialMetrics();
+        const activeRules = getTriggeredRules();
+        const suggestions = activeRules.length ? activeRules.slice(0, 4) : [{
+          name: "保持节奏",
+          level: "建议",
+          message: "当前状态稳定，继续保持复盘与现金流管理。",
+          action: "每月检查固定支出与计划投资额，保持长期节奏。"
+        }];
+
+        const metricCards = [
+          {
+            label: "财务自由度",
+            value: `${formatPercent(metrics.freedomRate)}`,
+            sub: metrics.passiveIncome > 0 ? "被动收入覆盖支出" : "需要增加被动收入",
+            tone: metrics.freedomRate >= 50 ? "trend-up" : (metrics.freedomRate >= 0 ? "trend-neutral" : "trend-down")
+          },
+          {
+            label: "月现金流",
+            value: formatMoney(metrics.monthlyCashFlow),
+            sub: metrics.monthlyCashFlow >= 0 ? "正向积累" : "需要压缩支出",
+            tone: metrics.monthlyCashFlow >= 0 ? "trend-up" : "trend-down"
+          },
+          {
+            label: "净资产",
+            value: formatMoney(metrics.netWorth),
+            sub: "资产减负债",
+            tone: "trend-up"
+          },
+          {
+            label: "储蓄率",
+            value: formatPercent(metrics.savingsRate),
+            sub: "收入保留比例",
+            tone: metrics.savingsRate >= 20 ? "trend-up" : "trend-neutral"
+          },
+          {
+            label: "应急基金",
+            value: `${metrics.emergencyFundMonths.toFixed(1)} 个月`,
+            sub: "生活安全垫",
+            tone: metrics.emergencyFundMonths >= 3 ? "trend-up" : "trend-neutral"
+          },
+          {
+            label: "负债收入比",
+            value: formatPercent(metrics.debtRatio),
+            sub: "还款压力指数",
+            tone: metrics.debtRatio <= 35 ? "trend-up" : "trend-down"
+          }
+        ];
+
+        const fiTarget = metrics.fiTarget || 0;
+        const fiProgress = fiTarget > 0 ? clamp((metrics.netWorth / fiTarget) * 100, 0, 100) : 0;
+
+        return `
+          <section class="card">
+            <div class="stats-grid">
+              ${metricCards.map(card => `
+                <div class="metric-card">
+                  <div class="metric-label">
+                    <span>${card.label}</span>
+                    <span class="${card.tone}">●</span>
+                  </div>
+                  <div class="metric-value">${card.value}</div>
+                  <div class="metric-sub">${card.sub}</div>
+                </div>
+              `).join("")}
+            </div>
+          </section>
+
+          <section class="card">
+            <div class="section-title">
+              <span>六种资本雷达图</span>
+              <small>0-100 分</small>
+            </div>
+            <div class="split-grid">
+              <div class="chart-card">
+                ${renderRadarSvg()}
+              </div>
+              <div>
+                <ul class="actions-list">
+                  ${suggestions.map(action => `
+                    <li class="action-item">
+                      <div class="action-head">
+                        <strong>${escapeHtml(action.name)}</strong>
+                        <span class="action-badge level-${escapeHtml(action.level)}">${escapeHtml(action.level)}</span>
+                      </div>
+                      <p>${escapeHtml(action.message)}</p>
+                    </li>
+                  `).join("")}
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <section class="card">
+            <div class="section-title">
+              <span>财务自由目标</span>
+              <small>FI 路线图</small>
+            </div>
+            <div class="fi-box">
+              <div class="fi-grid">
+                <div class="fi-item">
+                  <div class="fi-item-label">年支出</div>
+                  <div class="fi-item-value">${formatMoney(metrics.annualExpense)}</div>
+                </div>
+                <div class="fi-item">
+                  <div class="fi-item-label">FI 数字</div>
+                  <div class="fi-item-value">${formatMoney(fiTarget)}</div>
+                </div>
+                <div class="fi-item">
+                  <div class="fi-item-label">当前净资产</div>
+                  <div class="fi-item-value">${formatMoney(metrics.netWorth)}</div>
+                </div>
+                <div class="fi-item">
+                  <div class="fi-item-label">距离 FI</div>
+                  <div class="fi-item-value">${formatMoney(metrics.distanceToFi)}</div>
+                </div>
+              </div>
+
+              <div class="progress-wrap">
+                <div class="progress-label">
+                  <span>完成度</span>
+                  <span>${formatPercent(fiProgress)}</span>
+                </div>
+                <div class="progress-bar">
+                  <div class="progress-fill" style="width: ${fiProgress}%;"></div>
+                </div>
+              </div>
+            </div>
+          </section>
+        `;
+      }
+
+      function renderFinancePage() {
+        const financeMeta = {
+          incomes: {
+            key: "incomes",
+            title: "收入",
+            placeholder: "例如：主业工资",
+            fields: [
+              { name: "name", type: "text", label: "名称", placeholder: "如：主业工资" },
+              { name: "type", type: "select", label: "类型", options: ["主动", "被动"] },
+              { name: "amount", type: "number", label: "月金额", placeholder: "0" }
+            ]
+          },
+          expenses: {
+            key: "expenses",
+            title: "支出",
+            placeholder: "例如：房租",
+            fields: [
+              { name: "name", type: "text", label: "名称", placeholder: "如：房租" },
+              { name: "type", type: "select", label: "类型", options: ["固定", "浮动"] },
+              { name: "amount", type: "number", label: "月金额", placeholder: "0" }
+            ]
+          },
+          assets: {
+            key: "assets",
+            title: "资产",
+            placeholder: "例如：指数基金",
+            fields: [
+              { name: "name", type: "text", label: "名称", placeholder: "如：指数基金" },
+              { name: "value", type: "number", label: "当前价值", placeholder: "0" },
+              { name: "cashflow", type: "number", label: "月现金流", placeholder: "0" }
+            ]
+          },
+          liabilities: {
+            key: "liabilities",
+            title: "负债",
+            placeholder: "例如：信用卡",
+            fields: [
+              { name: "name", type: "text", label: "名称", placeholder: "如：信用卡" },
+              { name: "balance", type: "number", label: "余额", placeholder: "0" },
+              { name: "monthlyPayment", type: "number", label: "月还款", placeholder: "0" },
+              { name: "rate", type: "number", label: "年利率", placeholder: "0" }
+            ]
+          }
+        };
+
+        const meta = financeMeta[app.financeTab];
+        const items = state.finance[meta.key] || [];
+        const lineItems = items.length ? items.map(item => {
+          const amount = meta.key === "assets"
+            ? formatMoney(item.value)
+            : meta.key === "liabilities"
+              ? formatMoney(item.balance)
+              : formatMoney(item.amount);
+
+          const subText = meta.key === "incomes"
+            ? item.type + "收入"
+            : meta.key === "expenses"
+              ? item.type + "支出"
+              : meta.key === "assets"
+                ? `${item.emergency ? "应急基金" : "低风险/长期"} · 月流 ${formatMoney(item.cashflow)}`
+                : `年利率 ${Number(item.rate || 0).toFixed(1)}% · 月还 ${formatMoney(item.monthlyPayment)}`;
+
+          return `
+            <div class="list-item">
+              <div class="list-item-main">
+                <strong>${escapeHtml(item.name)}</strong>
+                <small>${escapeHtml(subText)}</small>
+              </div>
+              <div class="list-item-right">
+                <span class="amount-badge">${amount}</span>
+                <button class="tiny-button" type="button" data-delete-kind="${meta.key}" data-delete-id="${item.id}">删除</button>
+              </div>
+            </div>
+          `;
+        }).join("") : `<div class="empty-state">暂无${meta.title}记录，添加你的第一条数据。</div>`;
+
+        const formFields = meta.fields.map(field => {
+          if (field.type === "select") {
+            const options = field.options.map(opt => `<option value="${opt}">${opt}</option>`).join("");
+            return `
+              <div class="field">
+                <label>${field.label}</label>
+                <select name="${field.name}" data-form-field="${field.name}">
+                  ${options}
+                </select>
+              </div>
+            `;
+          }
+          return `
+            <div class="field">
+              <label>${field.label}</label>
+              <input type="${field.type}" name="${field.name}" data-form-field="${field.name}" placeholder="${field.placeholder}" />
+            </div>
+          `;
+        }).join("");
+
+        const assetExtra = meta.key === "assets" ? `
+          <div class="checkbox-row">
+            <input type="checkbox" name="emergency" id="asset-emergency" />
+            <label for="asset-emergency">是否计入应急基金（流动 / 低风险）</label>
+          </div>
+        ` : "";
+
+        return `
+          <section class="card">
+            <div class="segmented">
+              <button type="button" class="${app.financeTab === "incomes" ? "active" : ""}" data-finance-tab="incomes">收入</button>
+              <button type="button" class="${app.financeTab === "expenses" ? "active" : ""}" data-finance-tab="expenses">支出</button>
+              <button type="button" class="${app.financeTab === "assets" ? "active" : ""}" data-finance-tab="assets">资产</button>
+              <button type="button" class="${app.financeTab === "liabilities" ? "active" : ""}" data-finance-tab="liabilities">负债</button>
+            </div>
+
+            <div class="section-title">
+              <span>${meta.title}管理</span>
+              <small>${meta.title}列表</small>
+            </div>
+
+            <form id="finance-form" data-finance-kind="${meta.key}">
+              <div class="field-grid">${formFields}</div>
+              ${assetExtra}
+              <div class="button-row">
+                <button type="submit" class="button-primary">新增${meta.title}</button>
+              </div>
+            </form>
+
+            <div class="list-wrap">
+              ${lineItems}
+            </div>
+          </section>
+        `;
+      }
+
+      function renderCapitalPage() {
+        const capitalValues = state.capital.values || {};
+        const chart = renderRadarSvg();
+
+        return `
+          <section class="card">
+            <div class="section-title">
+              <span>六种资本评估</span>
+              <small>0-100</small>
+            </div>
+
+            <div class="capital-grid">
+              ${CAPITAL_KEYS.map(item => `
+                <div class="capital-item">
+                  <div class="capital-meta">
+                    <span>${item.label}</span>
+                    <span>${Number(capitalValues[item.key] || 0)} / 100</span>
+                  </div>
+                  <input type="range" min="0" max="100" value="${Number(capitalValues[item.key] || 0)}" data-capital-key="${item.key}" />
+                  <textarea class="capital-note" data-capital-note="${item.key}" rows="2" placeholder="写下你的备注...">${escapeHtml(state.capital.notes?.[item.key] || "")}</textarea>
+                </div>
+              `).join("")}
+            </div>
+          </section>
+
+          <section class="card">
+            <div class="section-title">
+              <span>资本雷达图</span>
+              <small>实时反馈</small>
+            </div>
+            ${chart}
+          </section>
+        `;
+      }
+
+      function renderReviewPage() {
+        const reviewMeta = {
+          monthly: { label: "月度复盘", description: "检查现金流与行动" },
+          quarterly: { label: "季度复盘", description: "检查资产结构与目标" },
+          annual: { label: "年度复盘", description: "检查整体方向与意义" }
+        };
+
+        const period = app.reviewTab;
+        const questions = state.reviewTemplates[period] || [];
+        const history = state.reviews[period] || [];
+
+        const draftInputs = questions.map((question, index) => `
+          <div class="review-item">
+            <div class="field">
+              <label>问题 ${index + 1}</label>
+              <input type="text" data-review-question="${period}" data-q="${index}" value="${escapeHtml(question)}" />
+            </div>
+            <div class="field">
+              <label>答案</label>
+              <textarea rows="3" data-review-answer="${period}" data-a="${index}" placeholder="填写你的答案..."></textarea>
+            </div>
+          </div>
+        `).join("");
+
+        const pastRecords = history.length
+          ? history.map(record => {
+              const answers = record.answers || [];
+              return `
+                <div class="history-card">
+                  <div class="history-head">
+                    <strong>${escapeHtml(record.createdAtLabel || new Date(record.createdAt).toLocaleDateString("zh-CN"))}</strong>
+                    <button class="tiny-button" type="button" data-review-delete="${period}" data-review-id="${record.id}">删除</button>
+                  </div>
+                  <div class="history-answer">
+                    ${answers.map(item => `
+                      <div class="history-answer-row">
+                        <label>${escapeHtml(item.question)}</label>
+                        <p>${escapeHtml(item.answer || "未填写")}</p>
+                      </div>
+                    `).join("")}
+                  </div>
+                </div>
+              `;
+            }).join("")
+          : `<div class="empty-state">暂无${reviewMeta[period].label}记录。先记录一次复盘。</div>`;
+
+        return `
+          <section class="card">
+            <div class="segmented">
+              <button type="button" class="${period === "monthly" ? "active" : ""}" data-review-tab="monthly">月度</button>
+              <button type="button" class="${period === "quarterly" ? "active" : ""}" data-review-tab="quarterly">季度</button>
+              <button type="button" class="${period === "annual" ? "active" : ""}" data-review-tab="annual">年度</button>
+            </div>
+
+            <div class="section-title">
+              <span>${reviewMeta[period].label}</span>
+              <small>${reviewMeta[period].description}</small>
+            </div>
+
+            <div class="review-block">
+              ${draftInputs}
+              <div class="button-row">
+                <button type="button" class="button-success" id="save-review">保存复盘</button>
+              </div>
+            </div>
+
+            <div class="history-list">
+              ${pastRecords}
+            </div>
+          </section>
+        `;
+      }
+
+      function renderSettingsPage() {
+        return `
+          <section class="card">
+            <div class="section-title">
+              <span>目标设定</span>
+              <small>每月计划投资额</small>
+            </div>
+            <div class="field">
+              <label>计划投资金额（元/月）</label>
+              <input id="monthly-investment-goal" type="number" min="0" step="100" value="${Number(state.settings.monthlyInvestmentGoal || 0)}" />
+            </div>
+          </section>
+
+          <section class="card">
+            <div class="section-title">
+              <span>数据管理</span>
+              <small>导出 / 导入 / 清空</small>
+            </div>
+            <div class="settings-list">
+              <button type="button" class="button-primary" id="export-json-btn">导出 JSON</button>
+              <label class="upload-btn button-warning">
+                导入 JSON
+                <input type="file" id="import-json-input" accept="application/json" />
+              </label>
+              <button type="button" class="button-danger" id="clear-all-btn">清空全部</button>
+            </div>
+          </section>
+
+          <section class="card">
+            <div class="section-title">
+              <span>使用说明</span>
+              <small>如何使用</small>
+            </div>
+            <ol class="help-list">
+              <li>从首页查看财务自由度、现金流、净资产和六种资本雷达图。</li>
+              <li>在财务页逐项记录收入、支出、资产和负债，系统会实时更新现金流和净资产。</li>
+              <li>在资本页为六种资本打分，并写下关键备注，雷达图将同步变化。</li>
+              <li>在复盘页按月、季、年记录目标与感悟，积累长期成长轨迹。</li>
+              <li>设置中可设定计划投资金额，并支持 JSON 导出 / 导入 / 全部清空。</li>
+            </ol>
+          </section>
+        `;
+      }
+
+      function renderRadarSvg() {
+        const values = state.capital.values || {};
+        const centerX = 120;
+        const centerY = 120;
+        const radius = 82;
+        const axes = CAPITAL_KEYS.map((item, index) => {
+          const angle = -Math.PI / 2 + (index / CAPITAL_KEYS.length) * (Math.PI * 2);
+          return {
+            ...item,
+            angle,
+            value: Number(values[item.key] || 0),
+            x: centerX + Math.cos(angle) * radius,
+            y: centerY + Math.sin(angle) * radius,
+            labelX: centerX + Math.cos(angle) * (radius + 20),
+            labelY: centerY + Math.sin(angle) * (radius + 20)
+          };
+        });
+
+        const rings = [0.2, 0.4, 0.6, 0.8, 1].map(scale => {
+          const ringPoints = axes.map(axis => {
+            const x = centerX + Math.cos(axis.angle) * radius * scale;
+            const y = centerY + Math.sin(axis.angle) * radius * scale;
+            return `${x},${y}`;
+          }).join(" ");
+          return `<polygon points="${ringPoints}" fill="none" stroke="rgba(148, 163, 184, 0.18)" stroke-width="1" />`;
+        }).join("");
+
+        const polygonPoints = axes.map(axis => {
+          const r = radius * (axis.value / 100);
+          const x = centerX + Math.cos(axis.angle) * r;
+          const y = centerY + Math.sin(axis.angle) * r;
+          return `${x},${y}`;
+        }).join(" ");
+
+        const axisLines = axes.map(axis => `
+          <line x1="${centerX}" y1="${centerY}" x2="${axis.x}" y2="${axis.y}" stroke="rgba(148,163,184,0.22)" stroke-width="1" />
+          <text x="${axis.labelX}" y="${axis.labelY}" text-anchor="middle" dominant-baseline="middle"
+              fill="#94a3b8" font-size="10">${axis.label}</text>
+        `).join("");
+
+        return `
+          <svg viewBox="0 0 240 240">
+            ${rings}
+            ${axisLines}
+            <polygon points="${polygonPoints}" fill="rgba(56, 189, 248, 0.24)" stroke="rgba(56, 189, 248, 0.9)" stroke-width="2" />
+            ${axes.map(axis => {
+              const r = radius * (axis.value / 100);
+              const x = centerX + Math.cos(axis.angle) * r;
+              const y = centerY + Math.sin(axis.angle) * r;
+              return `<circle cx="${x}" cy="${y}" r="3.5" fill="#38bdf8" />`;
+            }).join("")}
+          </svg>
+        `;
+      }
+
+      function bindPageEvents() {
+        const navButtons = document.querySelectorAll(".nav-button");
+        navButtons.forEach(button => {
+          button.classList.toggle("active", button.dataset.tab === app.currentTab);
+          button.onclick = () => {
+            app.currentTab = button.dataset.tab;
+            renderPage();
+          };
+        });
+
+        if (app.currentTab === "finance") {
+          document.querySelectorAll("[data-finance-tab]").forEach(button => {
+            button.onclick = () => {
+              app.financeTab = button.dataset.financeTab;
+              renderPage();
+            };
+          });
+
+          const form = document.getElementById("finance-form");
+          if (form) {
+            form.addEventListener("submit", function (event) {
+              event.preventDefault();
+              const kind = form.dataset.financeKind;
+              const data = {};
+              form.querySelectorAll("[data-form-field]").forEach(field => {
+                data[field.name] = field.value;
+              });
+
+              const name = String(data.name || "").trim();
+              if (!name) {
+                alert("名称不能为空");
+                return;
+              }
+
+              if (kind === "incomes") {
+                const item = {
+                  id: uid("income"),
+                  name,
+                  type: String(data.type || "主动"),
+                  amount: Number(data.amount || 0)
+                };
+                state.finance.incomes.push(item);
+              } else if (kind === "expenses") {
+                const item = {
+                  id: uid("expense"),
+                  name,
+                  type: String(data.type || "固定"),
+                  amount: Number(data.amount || 0)
+                };
+                state.finance.expenses.push(item);
+              } else if (kind === "assets") {
+                const asset = {
+                  id: uid("asset"),
+                  name,
+                  value: Number(data.value || 0),
+                  cashflow: Number(data.cashflow || 0),
+                  emergency: form.querySelector('input[name="emergency"]')?.checked || false
+                };
+                state.finance.assets.push(asset);
+              } else if (kind === "liabilities") {
+                const liability = {
+                  id: uid("liability"),
+                  name,
+                  balance: Number(data.balance || 0),
+                  monthlyPayment: Number(data.monthlyPayment || 0),
+                  rate: Number(data.rate || 0)
+                };
+                state.finance.liabilities.push(liability);
+              }
+
+              persist();
+              renderPage();
+            });
+          }
+
+          document.querySelectorAll("[data-delete-kind]").forEach(button => {
+            button.addEventListener("click", () => {
+              const kind = button.dataset.deleteKind;
+              const id = button.dataset.deleteId;
+              if (!kind || !id) return;
+
+              state.finance[kind] = (state.finance[kind] || []).filter(item => item.id !== id);
+              persist();
+              renderPage();
+            });
+          });
+        }
+
+        if (app.currentTab === "capital") {
+          document.querySelectorAll("[data-capital-key]").forEach(input => {
+            input.addEventListener("input", function () {
+              const key = this.dataset.capitalKey;
+              state.capital.values[key] = Number(this.value || 0);
+              persist();
+              const radarSection = document.querySelector(".chart-card");
+              if (radarSection) {
+                radarSection.innerHTML = renderRadarSvg();
+              }
+            });
+          });
+
+          document.querySelectorAll("[data-capital-note]").forEach(textarea => {
+            textarea.addEventListener("input", function () {
+              const key = this.dataset.capitalNote;
+              state.capital.notes[key] = this.value;
+              persist();
+            });
+          });
+        }
+
+        if (app.currentTab === "review") {
+          document.querySelectorAll("[data-review-tab]").forEach(button => {
+            button.onclick = () => {
+              app.reviewTab = button.dataset.reviewTab;
+              renderPage();
+            };
+          });
+
+          const saveButton = document.getElementById("save-review");
+          if (saveButton) {
+            saveButton.addEventListener("click", () => {
+              const period = app.reviewTab;
+              const questionFields = document.querySelectorAll(`[data-review-question="${period}"]`);
+              const answerFields = document.querySelectorAll(`[data-review-answer="${period}"]`);
+
+              const entries = questionFields.length ? Array.from(questionFields).map((field, index) => {
+                const question = (field.value || "").trim() || `问题 ${index + 1}`;
+                state.reviewTemplates[period][index] = question;
+                const answer = (answerFields[index]?.value || "").trim();
+                return { question, answer };
+              }) : [];
+
+              const hasAnyAnswer = entries.some(item => item.answer);
+              if (!hasAnyAnswer) {
+                alert("至少填写一条答案再保存复盘。");
+                return;
+              }
+
+              const record = {
+                id: uid("review"),
+                createdAt: new Date().toISOString(),
+                createdAtLabel: new Date().toLocaleDateString("zh-CN"),
+                answers: entries.map(item => ({
+                  question: item.question,
+                  answer: item.answer || "未填写"
+                }))
+              };
+
+              state.reviews[period] = [record, ...(state.reviews[period] || [])];
+              persist();
+              renderPage();
+            });
+          }
+
+          document.querySelectorAll("[data-review-delete]").forEach(button => {
+            button.addEventListener("click", () => {
+              const period = button.dataset.reviewDelete;
+              const id = button.dataset.reviewId;
+              state.reviews[period] = (state.reviews[period] || []).filter(item => item.id !== id);
+              persist();
+              renderPage();
+            });
+          });
+        }
+
+        if (app.currentTab === "settings") {
+          const goalInput = document.getElementById("monthly-investment-goal");
+          if (goalInput) {
+            goalInput.addEventListener("input", () => {
+              state.settings.monthlyInvestmentGoal = Number(goalInput.value || 0);
+              persist();
+            });
+          }
+
+          const exportBtn = document.getElementById("export-json-btn");
+          if (exportBtn) {
+            exportBtn.addEventListener("click", () => {
+              const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+              const url = URL.createObjectURL(blob);
+              const link = document.createElement("a");
+              link.href = url;
+              link.download = "life_os_data.json";
+              document.body.appendChild(link);
+              link.click();
+              setTimeout(() => {
+                URL.revokeObjectURL(url);
+                link.remove();
+              }, 300);
+            });
+          }
+
+          const importInput = document.getElementById("import-json-input");
+          if (importInput) {
+            importInput.addEventListener("change", (event) => {
+              const file = event.target.files && event.target.files[0];
+              if (!file) return;
+
+              const reader = new FileReader();
+              reader.onload = () => {
+                try {
+                  const parsed = JSON.parse(String(reader.result || "{}"));
+                  state = mergeDeep(DEFAULT_STATE, parsed);
+                  persist();
+                  renderPage();
+                } catch (error) {
+                  alert("导入失败，JSON 格式可能不正确。");
+                } finally {
+                  importInput.value = "";
+                }
+              };
+              reader.readAsText(file);
+            });
+          }
+
+          const clearBtn = document.getElementById("clear-all-btn");
+          if (clearBtn) {
+            clearBtn.addEventListener("click", () => {
+              const confirmed = window.confirm("确认清空全部数据？这会删除收入、支出、资产、负债、资本和复盘记录。");
+              if (!confirmed) return;
+              state = deepClone(DEFAULT_STATE);
+              persist();
+              renderPage();
+            });
+          }
+        }
+      }
+
+      function renderPage() {
+        const pageMeta = {
+          home: { title: "首页", subtitle: "现金流与自由度" },
+          finance: { title: "财务", subtitle: "收入、支出、资产、负债" },
+          capital: { title: "资本", subtitle: "六种资本评估" },
+          review: { title: "复盘", subtitle: "月度、季度、年度" },
+          settings: { title: "设置", subtitle: "计划、导出与说明" }
+        };
+
+        document.getElementById("page-title").textContent = pageMeta[app.currentTab].title;
+        document.getElementById("header-subtitle").textContent = pageMeta[app.currentTab].subtitle;
+
+        const pages = {
+          home: renderHomePage,
+          finance: renderFinancePage,
+          capital: renderCapitalPage,
+          review: renderReviewPage,
+          settings: renderSettingsPage
+        };
+
+        document.getElementById("app-page").innerHTML = pages[app.currentTab]();
+        bindPageEvents();
+      }
+
+      async function bootstrap() {
+        const localState = loadState();
+        if (localState) {
+          state = localState;
+        }
+
+        await fetchLatestStateFromOss();
+        renderPage();
+      }
+
+      bootstrap();
+    })();
+  </script>
+</body>
+</html>
